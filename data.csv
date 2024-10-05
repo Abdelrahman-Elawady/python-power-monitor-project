@@ -1,0 +1,11 @@
+device_id,voltage,current,power_consumption,device_type,location
+Device1,88,0.9,79,Microwave,Kitchen
+Device2,547,0.54,295,Oven,Hallway
+Device3,696,1.21,842,Microwave,Kitchen
+Device4,737,1.55,1142,Refrigerator,Bedroom
+Device5,800,1.86,1488,Light,Basement
+Device6,861,0.99,852,Microwave,Office
+Device7,879,0.88,774,Light,Kitchen
+Device8,441,1.52,670,Air Conditioner,Garage
+Device9,473,1.25,591,Computer,Garage
+Device10,676,1.59,1075,Heater,Garage
