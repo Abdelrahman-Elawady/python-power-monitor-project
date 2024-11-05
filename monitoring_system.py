@@ -1,5 +1,6 @@
 import csv
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoLocator
 import pandas as pd
 
 class PowerConsumptionMonitor():
@@ -46,6 +47,8 @@ class PowerConsumptionMonitor():
         with open(filename, 'r') as input_file:
             dict_reader = csv.DictReader(input_file)
             self.data = list(dict_reader)
+        print(f"Loaded {len(self.data)} devices from {filename}")
+
     
 class CostCalculator(PowerConsumptionMonitor):
     def calculate_energy_cost(self, device_id, hours, rate_per_kwh):
@@ -60,14 +63,15 @@ class CostCalculator(PowerConsumptionMonitor):
 class DataAnalyzer(PowerConsumptionMonitor):
     def analyze_data(self):
         self.df = pd.DataFrame(self.data)
+        print(self.df)
         return self.df
 
     def plot_data(self):
         df = self.df.sort_values(by='device_id')  # Sort by device_id
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(20, 6))
 
         # Create a bar graph for power
-        bar_width = 0.25
+        bar_width = 0.5
         device_ids = df['device_id']
         indices = range(len(device_ids))
 
@@ -76,7 +80,11 @@ class DataAnalyzer(PowerConsumptionMonitor):
         plt.title('Bar Graph of Power per device')
         plt.xlabel('Device ID')
         plt.ylabel('power consumption (W)')
-        plt.xticks([i for i in indices], device_ids)
+        plt.xticks([i for i in indices], device_ids, rotation=90, ha='center')
+        plt.tick_params(axis='x', which='major', labelsize=7)
+        #plt.gca().xaxis.set_major_locator(AutoLocator()) #this line is to only show major x axis values in case of so many data
+        plt.tight_layout()  # Adjust layout to ensure everything fits without overlapping
+
         plt.legend()
 
         plt.show()

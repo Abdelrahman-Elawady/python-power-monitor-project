@@ -25,7 +25,6 @@ def initialize_default_data(monitor):
     for device in default_data:
         monitor.add_device_data(device['device_id'], device['voltage'], device['current'], device['device_type'], device['location'])
     monitor.save_to_csv("data.csv")
-    monitor.load_from_csv("data.csv")
 
 def main():
     monitor = PowerConsumptionMonitor()
@@ -84,6 +83,9 @@ def main():
                 devices_dict["Power Consumptions"].append(device['power_consumption'])
                 devices_dict["Devices Types"].append(device['device_type'])
                 devices_dict["Locations"].append(device['location'])
+            pd.set_option('display.max_rows', None)  # Ensure all rows are displayed
+            pd.set_option('display.max_columns', None)  # Ensure all columns are displayed
+            pd.set_option('display.width', None)  # Ensure the display width is not truncated
             print(pd.DataFrame(devices_dict))
     
         elif choice == '3':
@@ -91,11 +93,28 @@ def main():
                 threshold = float(input("\nEnter power consumption threshold: \n"))
                 filtered_data = monitor.filter_by_threshold(threshold)
                 print("\nDevices exceeding the threshold:\n")
+                devices_dict = {
+                    "Device IDs": [],
+                    "Voltages": [],
+                    "Currents": [],
+                    "Power Consumptions": [],
+                    "Devices Types": [],
+                    "Locations": []
+                }
                 for device in filtered_data:
-                    print(f"Device ID: {device['device_id']}, Voltage: {device['voltage']}, Current: {device['current']}, Power Consumption: {device['power_consumption']}, Device Type: {device['device_type']}, Location: {device['location']}")
+                    devices_dict["Device IDs"].append(device['device_id'])
+                    devices_dict["Voltages"].append(device['voltage'])
+                    devices_dict["Currents"].append(device['current'])
+                    devices_dict["Power Consumptions"].append(device['power_consumption'])
+                    devices_dict["Devices Types"].append(device['device_type'])
+                    devices_dict["Locations"].append(device['location'])
+                pd.set_option('display.max_rows', None)  # Ensure all rows are displayed
+                pd.set_option('display.max_columns', None)  # Ensure all columns are displayed
+                pd.set_option('display.width', None)  # Ensure the display width is not truncated
+                print(pd.DataFrame(devices_dict))
             except ValueError:
                 print("\nInvalid input for threshold. Please enter a numeric value.\n")
-        
+
         elif choice == '4':
             device_id = input("\nEnter Device ID to search: \n")
             device = monitor.search_device(device_id)
@@ -105,25 +124,46 @@ def main():
                 print("\nDevice not found.\n")
         
         elif choice == '5':
-            device_id = input("Enter Device ID to calculate energy cost: ")
-            device = monitor.search_device(device_id)
-            if device:
-                try:
-                    hours = float(input("Enter number of hours: "))
-                    rate_per_kwh = float(input("Enter rate per kWh: "))
-                    cost = cost_calculator.calculate_energy_cost(device_id, hours, rate_per_kwh)
-                    if cost is not None:
-                        print(f"Energy cost for {device['device_id']}: ${cost:.2f}")
-                    else:
-                        print("Device not found.")
-                except ValueError:
-                    print("Invalid input for hours or rate. Please enter numeric values.")
-            else:
-                print("Device not found.")
+            # Ask the user to input the filename they want to use for calculating energy cost
+            filename = input("\nEnter filename to load data for calculating energy cost (e.g., data.csv): \n")
+            try:
+                cost_calculator.load_from_csv(filename)
+                
+                device_id = input("Enter Device ID to calculate energy cost: ")
+                device = cost_calculator.search_device(device_id)
+                
+                if device:
+                    try:
+                        hours = float(input("Enter number of hours: "))
+                        rate_per_kwh = float(input("Enter rate per kWh: "))
+                        cost = cost_calculator.calculate_energy_cost(device_id, hours, rate_per_kwh)
+                        if cost is not None:
+                            print(f"Energy cost for {device['device_id']} for {hours} hours at {rate_per_kwh} per kWh is ${cost:.2f}")
+                        else:
+                            print("Device not found.")
+                    except ValueError:
+                        print("Invalid input for hours or rate. Please enter numeric values.")
+                else:
+                    print("Device not found.")
+                    
+            except FileNotFoundError:
+                print("\nFile not found. Please check the filename and try again.\n")
+            except Exception as e:
+                print(f"\nAn error occurred while loading from CSV: {e}\n")
+
+        
         
         elif choice == '6':
-            data_analyzer.analyze_data()
-            data_analyzer.plot_data()
+            # Ask the user to input the filename they want to plot
+            filename = input("\nEnter filename to load data for plotting (e.g., data.csv): \n")
+            try:
+                data_analyzer.load_from_csv(filename)
+                data_analyzer.analyze_data()
+                data_analyzer.plot_data()
+            except FileNotFoundError:
+                print("\nFile not found. Please check the filename and try again.\n")
+            except Exception as e:
+                print(f"\nAn error occurred while loading from CSV: {e}\n")
 
         elif choice == '7':
             filename = input("\nEnter filename to save data (e.g., data.csv): \n")
